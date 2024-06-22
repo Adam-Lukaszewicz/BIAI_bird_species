@@ -47,7 +47,7 @@ class BirdSpeciesDataset(Dataset):
 
 paths = DatasetDirectories()
 transform = transforms.Compose([
-    transforms.Resize((128, 128)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
 ])
 train_dataset = BirdSpeciesDataset(data_dir=paths.trainPath, transform=transform)
@@ -61,12 +61,13 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 model = SimpleSpeciesClassifier()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-num_epochs = 3
+num_epochs = 5
 train_losses, val_losses = [], []
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
 model.to(device)
 
 for epoch in range(num_epochs):

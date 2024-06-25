@@ -19,9 +19,9 @@ from datasetDirectories import DatasetDirectories
 class SimpleSpeciesClassifier(nn.Module):
     def __init__(self, num_classes = 525):
         super(SimpleSpeciesClassifier, self).__init__()
-        self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
+        self.base_model = timm.create_model('efficientnet_b3', pretrained=True)
         self.features = nn.Sequential(*list(self.base_model.children())[:-1])
-        enet_out_size = 1280
+        enet_out_size = 1536
         self.classifier = nn.Linear(enet_out_size, num_classes)
 
     def forward(self, x):
@@ -48,6 +48,12 @@ class BirdSpeciesDataset(Dataset):
 paths = DatasetDirectories()
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
+    transforms.RandomChoice(transforms=[transforms.RandomPerspective(),
+                                        transforms.RandomVerticalFlip(),
+                                        transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.8),
+                                        transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.8),
+                                        transforms.RandomAutocontrast(),
+                                        transforms.RandomRotation(degrees=(-10, 10)),]),
     transforms.ToTensor(),
 ])
 train_dataset = BirdSpeciesDataset(data_dir=paths.trainPath, transform=transform)
@@ -61,9 +67,9 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 model = SimpleSpeciesClassifier()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.00004)
 
-num_epochs = 5
+num_epochs = 10
 train_losses, val_losses = [], []
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
